@@ -27,8 +27,10 @@
         <div class="menu">
             <div class="level01 active"><a href="./main_count.html" target="myIframe"><i
                         class="iconfont icon-yidiandiantubiao04"></i><span>首页</span></a></div>
-            <div class="level01"><a href="#"><i class="iconfont icon-icon-article"></i><span>文章管理</span><b
-                        class="iconfont icon-arrowdownl"></b></a></div>
+                        <!-- ---------------------与下面默认选中文章列表有关--------------------------------- -->
+            <div class="level01"><a href="./article_list.html" target="myIframe">
+                    <i class="iconfont icon-icon-article"></i><span>文章管理</span>
+                    <b class="iconfont icon-arrowdownl"></b></a></div>
             <ul class="level02">
                 <li><a href="./article_list.html" target="myIframe"><i
                             class="iconfont icon-previewright"></i><span>文章列表</span></a></li>
@@ -79,12 +81,32 @@
             // 退出登录
             // 将储存在本地的token删除
             // 创建点击事件
-            $('.logout').on('click',function(e){
+            $('.logout').on('click', function (e) {
                 e.preventDefault();//阻止a标签的默认跳转
                 // 删除保存在本地的token
                 localStorage.removeItem('token');
                 // 返回登录页
                 window.location.href = './login.html';
+            })
+
+            // 左侧一级菜单点击事件
+            $('.level01').on('click', function () {
+                // 为当前点击的div 添加 active 类
+                $(this).addClass("active").siblings('div').removeClass("active");
+                // 当点击到文章管理时
+                if ($(this).index() == 1) {
+                    // 显示二级菜单ul
+                    $('.level02').slideToggle();
+                    $(this).find("b").toggleClass("rotate0");
+                    // 默认选中文章列表
+                    $('.level02>li:eq(0)').trigger('click');
+                    // $("ul.level02>li:eq(0)>a")[0].click();
+                }
+            })
+
+            // 左侧三级菜单点击事件
+            $('.level02>li').on('click', function () {
+                $(this).addClass("active").siblings("li").removeClass("active");
             })
         })
 
