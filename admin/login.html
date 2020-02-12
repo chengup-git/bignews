@@ -84,7 +84,6 @@
           return;
         }
       
-
       // 发送ajax请求
       $.ajax({
         type: 'post',
@@ -94,12 +93,13 @@
           password: password
         },
         success: function (backData) {
-
+          // 设置弹出框提示文本
           $(".modal-body").text(backData.msg);
           $('#myModal').modal({ keyboard: true });
           if (backData.code == 200) {
-
+            // 将token储存在本地
             window.localStorage.setItem("token", backData.token);
+            // 为弹出框设置一个隐藏事件
             $("#myModal").on("hidden.bs.modal", function (e) {
               window.location.href = "./index.html";
             });
