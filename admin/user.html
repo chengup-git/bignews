@@ -75,7 +75,7 @@
             // 发送ajax请求
             $.ajax({
                 type: 'get',
-                url: window.BigNew.user_detail,
+                url: BigNew.user_detail,
                 success: function (backData) {
                     if (backData.code == 200) {
                         // 遍历data
@@ -89,7 +89,7 @@
 
             // 为修改图片做预览
             $('#exampleInputFile').on('change', function () {
-                let file1 = this.flies[0];
+                let file1 = this.files[0];
                 let url = URL.createObjectURL(file1);
                 $('img.user_pic').attr('src', url);
             })
