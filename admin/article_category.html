@@ -77,7 +77,8 @@
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default btn-cancel" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-default btn-cancel" data-dismiss="modal"
+                        id="cancel">取消</button>
                     <button type="button" class="btn btn-primary btn-queren" id="sure">确认</button>
                 </div>
             </div>
@@ -93,24 +94,28 @@
                 <td>{{v.slug}}</td>
                 <td>
                     <a href="javascript:void(0)" data-id={{v.id}} data-toggle="modal" data-target="#myModal">编辑</a>
-                    <a href="javascript:void(0)" data-id={{v.id}}>删除</a>
+                    <a href="javascript:void(0)" data-id={{v.id}} class="btn-delete ">删除</a>
                 </td>
             </tr>
         {{/each}}
     </script>
     <script>
         $(function () {
-            // 发送ajax请求
-            $.ajax({
-                type: 'get',
-                url: BigNew.category_list,
-                success: function (backData) {
-                    if (backData.code == 200) {
-                        let res = template('temp', backData);
-                        $('tbody').html(res);
+            getData();
+
+            function getData() {
+                // 发送ajax请求
+                $.ajax({
+                    type: 'get',
+                    url: BigNew.category_list,
+                    success: function (backData) {
+                        if (backData.code == 200) {
+                            let res = template('temp', backData);
+                            $('tbody').html(res);
+                        }
                     }
-                }
-            })
+                })
+            }
 
             // 模态框事件
             $('#myModal').on('show.bs.modal', function (e) {
@@ -121,6 +126,110 @@
                 } else {
                     $('#exampleModalLabel').text('编辑类别');
                     $('#sure').text('编辑').addClass('btn-success').removeClass('btn-primary');
+
+                    // 将当前文章name和slug显示到文本框中
+                    $('#recipient-name').val($(e.relatedTarget).parent().prev().prev().text().trim());
+                    $('#message-text').val($(e.relatedTarget).parent().prev().text().trim());
+                    $('#category_id').val($(e.relatedTarget).attr('data-id'));
+                }
+            })
+
+            // 给模态框中的 新增/编辑 注册点击事件
+            $('#sure').on('click', function () {
+                // 用类判断是新增还是编辑
+                if ($('#sure').hasClass('btn-primary')) {
+                    let categoryName = $('#recipient-name').val();
+                    let categorySlug = $('#message-text').val();
+                    // 发送ajax 新增请求
+                    $.ajax({
+                        type: 'post',
+                        url: BigNew.category_add,
+                        data: {
+                            name: categoryName,
+                            slug: categorySlug
+                        },
+                        success: function (backData) {
+                            if (backData.code == 201) {
+                                // 清空新增模态框
+                                // $('#recipient-name').val("");
+                                // $('#message-text').val("");
+                                // 清空文本框数据 dom原生写法
+                                $('form')[0].reset();
+                                // 关闭模态框
+                                $('#myModal').modal('hide');
+                                // 调用请求函数
+                                getData();
+
+                            }
+                        }
+                    })
+                } else {
+                    // 获取文本框内的值
+                    let categoryName = $('#recipient-name').val().trim();
+                    let categorySlug = $('#message-text').val().trim();
+                    let categoryId = $('#category_id').val().trim();
+
+                    // let data = $('#myModal form').serialize();
+                    // 发送ajax新增请求 
+                    $.ajax({
+                        type: 'post',
+                        url: BigNew.category_edit,
+                        data: {
+                            id: categoryId,
+                            name: categoryName,
+                            slug: categorySlug
+                        },
+                        success: function (backData) {
+                            if (backData.code == 200) {
+                                // 关闭模态框
+                                $('#myModal').modal('hide');
+                                // 清空新增模态框
+                                // $('#recipient-name').val("");
+                                // $('#message-text').val("");
+                                // 清空文本框数据 dom原生写法
+                                $('form')[0].reset();
+                                // 调用请求函数
+                                getData();
+                            }
+                        }
+
+                    })
+                }
+            })
+
+            // 为取消按钮注册点击事件
+            $('#cancel').on('click', function () {
+                // 清空文本框数据 dom原生写法
+                $('form')[0].reset();
+                // 关闭模态框
+                $('#myModal').modal('hide');
+                // 清空新增模态框
+                // $('#recipient-name').val("");
+                // $('#message-text').val("");
+            })
+
+            // 为删除按钮委托注册点击事件
+            $('tbody').on('click', '.btn-delete', function () {
+                // 询问是否删除
+                if (confirm('确定删除？')) {
+                    // 获取当前行的id
+                    let categoryId = $(this).attr('data-id');
+                    // 发送ajax请求
+                    $.ajax({
+                        type: 'post',
+                        url: BigNew.category_delete,
+                        data: {
+                            id: categoryId
+                        },
+                        success: function (backData) {
+                            if (backData.code == 204) {
+                                // 发送请求函数
+                                getData();
+                                // 删除当前行
+                                // $('.btn-delete').parent().parent().remove();
+                            }
+                        }
+                    })
                 }
             })
         })
