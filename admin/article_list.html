@@ -72,6 +72,65 @@
             </div>
         </div>
     </div>
+    <script src="./libs/http.js"></script>
+    <!-- 创建一个模板 -->
+    <script id="temp" type="text/html">
+        <option value="">所有分类</option>
+        {{each data v}}
+            <option value="{{v.id}}">{{v.name}}</option>
+        {{/each}}
+    </script>
+
+    <!-- 创建一个模板 -->
+    <script id="temp1" type="text/html">
+        {{each data.data v}}
+        <tr>
+            <td>{{v.title}}</td>
+            <td>{{v.author}}</td>
+            <td>{{v.category}}</td>
+            <td class="text-center">{{v.data}}</td>
+            <td class="text-center">{{v.state}}</td>
+            <td class="text-center">
+                <a href="article_edit.html" class="btn btn-default btn-xs">编辑</a>
+                <a href="javascript:void(0);" data-id={{v.id}} class="btn btn-danger btn-xs delete">删除</a>
+            </td>
+        </tr>
+        {{/each}}
+    </script>
+    <script>
+        // 入口函数
+        $(function () {
+            // 发送ajax请求 获取所有文章类别 通过模板引擎渲染到下拉框中 
+            $.ajax({
+                type: 'get',
+                url: BigNew.category_list,
+                success: function (backData) {
+                    if (backData.code == 200) {
+                        let res = template('temp', backData);
+                        $('#selCategory').html(res);
+                    }
+                }
+            })
+
+            // 发送ajax请求 获取默认的文章列表 通过模板引擎渲染
+            $.ajax({
+                type:'get',
+                url:BigNew.article_query,
+                data:{
+                    type: $('#selCategory').val(),//文章类别
+                    stata:$('#selStatus').val(),//文章状态
+                    page:1,
+                    perpage:6
+                },
+                success:function(backData){
+                    if(backData.code == 200){
+                        let res = template('temp1',backData);
+                        $('tbody').html(res);
+                    }
+                }
+            })
+        })
+    </script>
 </body>
 
 </html>
