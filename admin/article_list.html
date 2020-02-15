@@ -128,15 +128,16 @@
                                 $('#p').hide();
                                 callback(backData);
                             }
-                            else if(backData.data.totalPage == myPage-1 && backData.data.data.length == 0){
-                                myPage -= 1;
-                                $('#pagination-demo').twbsPagination('changeTotalPages', backData.data.totalPage, myPage);
-                            } 
-                            else if (backData.data.data.length == 0) {
+                            else if (backData.data.data.length == 0 && myPage == 1) {
                                 // p标签显示 ul隐藏
                                 $('#p').show();
                                 $('#pagination-demo').hide();
                             }
+                            else if(backData.data.totalPage == myPage-1 && backData.data.data.length == 0){
+                                myPage -= 1;
+                                $('#pagination-demo').twbsPagination('changeTotalPages', backData.data.totalPage, myPage);
+                            } 
+                           
                         }
                     }
                 })
