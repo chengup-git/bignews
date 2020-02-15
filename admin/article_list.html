@@ -103,6 +103,31 @@
     <script>
         // 入口函数
         $(function () {
+
+            // 封装发送请求，获取文章列表
+            function getData(myPage, callback) {
+                $.ajax({
+                    type: 'get',
+                    url: BigNew.article_query,
+                    data: {
+                        type: $('#selCategory').val(),//文章类别
+                        state: $('#selStatus').val(),//文章状态
+                        page: myPage,
+                        perpage: 6
+                    },
+                    success: function (backData) {
+                        if (backData.code == 200) {
+                            let res = template('temp1', backData);
+                            $('tbody').html(res);
+                            // 如果不为空。执行回调函数
+                            if (callback != null) {
+                                callback(backData);
+                            }
+                        }
+                    }
+                })
+            }
+
             // 发送ajax请求 获取所有文章类别 通过模板引擎渲染到下拉框中 
             $.ajax({
                 type: 'get',
@@ -116,104 +141,97 @@
             })
 
             // 发送ajax请求 获取默认的文章列表 通过模板引擎渲染
-            $.ajax({
-                type: 'get',
-                url: BigNew.article_query,
-                data: {
-                    type: $('#selCategory').val(),//文章类别
-                    state: $('#selStatus').val(),//文章状态
-                    page: 1,
-                    perpage: 6
-                },
-                success: function (backData) {
-                    if (backData.code == 200) {
-                        let res = template('temp1', backData);
-                        $('tbody').html(res);
 
-                        // 分页插件
-                        $('#pagination-demo').twbsPagination({
-                            totalPages: backData.data.totalPage,//总页数
-                            visiblePages: 7,//可见页数
-                            first: '首页',
-                            prev: '上一页',
-                            next: '下一页',
-                            last: '尾页',
-                            onPageClick: function (event, page) {
-                                $.ajax({
-                                    type: 'get',
-                                    url: BigNew.article_query,
-                                    data: {
-                                        type: $('#selCategory').val(),//文章类别
-                                        state: $('#selStatus').val(),//文章状态
-                                        page: page,
-                                        perpage: 6
-                                    },
-                                    success: function (backData) {
-                                        if (backData.code == 200) {
-                                            let res = template('temp1', backData);
-                                            $('tbody').html(res);
-                                        }
-                                    }
-                                })
-                            }
-                        })
+            getData(1, function (backData) {
+                $('#pagination-demo').twbsPagination({
+                    totalPages: backData.data.totalPage,//总页数
+                    visiblePages: 7,//可见页数
+                    first: '首页',
+                    prev: '上一页',
+                    next: '下一页',
+                    last: '尾页',
+                    // 点击分页 发送ajax请求
+                    onPageClick: function (event, page) {
+                        getData(page, null);
                     }
-                }
+                })
             })
+
+            // $.ajax({
+            //     type: 'get',
+            //     url: BigNew.article_query,
+            //     data: {
+            //         type: $('#selCategory').val(),//文章类别
+            //         state: $('#selStatus').val(),//文章状态
+            //         page: 1,
+            //         perpage: 6
+            //     },
+            //     success: function (backData) {
+            //         if (backData.code == 200) {
+            //             let res = template('temp1', backData);
+            //             $('tbody').html(res);
+
+            //             // 分页插件
+            //             $('#pagination-demo').twbsPagination({
+            //                 totalPages: backData.data.totalPage,//总页数
+            //                 visiblePages: 7,//可见页数
+            //                 first: '首页',
+            //                 prev: '上一页',
+            //                 next: '下一页',
+            //                 last: '尾页',
+            //                 // 点击分页 发送ajax请求
+            //                 onPageClick: function (event, page) {
+            //                     $.ajax({
+            //                         type: 'get',
+            //                         url: BigNew.article_query,
+            //                         data: {
+            //                             type: $('#selCategory').val(),//文章类别
+            //                             state: $('#selStatus').val(),//文章状态
+            //                             page: page,
+            //                             perpage: 6
+            //                         },
+            //                         success: function (backData) {
+            //                             if (backData.code == 200) {
+            //                                 let res = template('temp1', backData);
+            //                                 $('tbody').html(res);
+            //                             }
+            //                         }
+            //                     })
+            //                 }
+            //             })
+            //         }
+            //     }
+            // })
 
             // 点击筛选按钮，显示对应条件的文章列表
             $('#btnSearch').on('click', function (e) {
                 e.preventDefault();//阻止默认提交
-                $.ajax({
-                    type: 'get',
-                    url: BigNew.article_query,
-                    data: {
-                        type: $('#selCategory').val(),//文章类别
-                        state: $('#selStatus').val(),//文章状态
-                        page: 1,
-                        perpage: 6
-                    },
-                    success: function (backData) {
-                        if (backData.code == 200) {
-                            let res = template('temp1', backData);
-                            $('tbody').html(res);
-
-                            // 点击筛选按钮，根据筛选出来的数据重新生成分页
-                            //第一个参数是事件名字
-                            // 第二个参数是改变后的总的页码
-                            // 第三个参数是改变后要显示的页码
-                            $('#pagination-demo').twbsPagination('changeTotalPages', backData.data.totalPage, 1);
-
-                            // 分页插件
-                            $('#pagination-demo').twbsPagination({
-                                totalPages: backData.data.totalPage,//总页数
-                                visiblePages: 7,//可见页数
-                                first: '首页',
-                                prev: '上一页',
-                                next: '下一页',
-                                last: '尾页',
-                                onPageClick: function (event, page) {
-                                    $.ajax({
-                                        type: 'get',
-                                        url: BigNew.article_query,
-                                        data: {
-                                            type: $('#selCategory').val(),//文章类别
-                                            state: $('#selStatus').val(),//文章状态
-                                            page: page,
-                                            perpage: 6
-                                        },
-                                        success: function (backData) {
-                                            if (backData.code == 200) {
-                                                let res = template('temp1', backData);
-                                                $('tbody').html(res);
-                                            }
-                                        }
-                                    })
-                                }
-                            })
-                        }
-                    }
+                getData(1, function (backData) {
+                    $('#pagination-demo').twbsPagination('changeTotalPages', backData.data.totalPage, 1);
                 })
+
+                // $.ajax({
+                //     type: 'get',
+                //     url: BigNew.article_query,
+                //     data: {
+                //         type: $('#selCategory').val(),//文章类别
+                //         state: $('#selStatus').val(),//文章状态
+                //         page: 1,
+                //         perpage: 6
+                //     },
+                //     success: function (backData) {
+                //         if (backData.code == 200) {
+                //             let res = template('temp1', backData);
+                //             $('tbody').html(res);
+
+                //             // 点击筛选按钮，根据筛选出来的数据重新生成分页
+                //             //第一个参数是事件名字
+                //             // 第二个参数是改变后的总的页码
+                //             // 第三个参数是改变后要显示的页码
+                //             $('#pagination-demo').twbsPagination('changeTotalPages', backData.data.totalPage, 1);
+                //         }
+                //     }
+                // })
             })
 
 
