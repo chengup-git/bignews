@@ -54,19 +54,19 @@
                 </div>
                 <div class="form-group">
                     <label class="col-sm-2 control-label">发布时间：</label>
-
+                    <!-- 日期插件结构 -->
                     <div class="jeitem col-sm-4">
                         <div class="jeinpbox">
-                            <input type="text" class="jeinput" id="testico" placeholder="YYYY-MM-DD">
+                            <input type="text" class="jeinput" id="testico" placeholder="YYYY-MM-DD" name="date">
                             <div class="icons jebtns"
-                                onclick="jeDate('#testico',{trigger:false,format: 'YYYY-MM-DD',theme: { bgcolor: '#00A680', pnColor: '#00DDAA' }})">
+                                onclick="jeDate('#testico',{zIndex:20999,trigger:false,format: 'YYYY-MM-DD',theme: { bgcolor: '#00A680', pnColor: '#00DDAA' }})">
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="inputEmail3" class="col-sm-2 control-label">文章内容：</label>
-
+                    <!-- 文本编辑器结构 -->
                     <div id="editor" class="col-sm-8">
                         <p>欢迎使用 <b>wangEditor</b> 富文本编辑器</p>
                     </div>
@@ -83,7 +83,7 @@
     <!-- 准备一个文章类别模板 -->
     <script id="temp" type="text/html">
         {{each data v}}
-            <option>{{v.name}}</option>
+            <option value="{{v.id}}">{{v.name}}</option>
         {{/each}}
     </script>
     <script src="./libs/http.js"></script>
@@ -92,33 +92,83 @@
             // 日期插件
             jeDate('#testico', {
                 trigger: 'click',
+                zIndex: 20999,
                 theme: { bgcolor: "#00A680", pnColor: "#00DDAA" },//绿色主题
                 format: "YYYY-MM-DD",
                 isinitVal: false,
             });
 
             // 富文本编辑器
-            var E = window.wangEditor
-            var editor = new E('#editor')
+            var E = window.wangEditor;
+            var editor = new E('#editor');
             // 或者 var editor = new E( document.getElementById('editor') )
             editor.create();
 
             // 头像预览
-            $('#inputCover').on('change',function(){
+            $('#inputCover').on('change', function () {
                 let file1 = this.files[0];
                 let url1 = URL.createObjectURL(file1);
-                $('.article_cover').attr('src',url1);
+                $('.article_cover').attr('src', url1);
             })
 
             // 一进到文章编辑页 显示所有文章类别
             $.ajax({
-                type:'get',
-                url:BigNew.category_list,
-                success:function(backData){
-                    if(backData.code == 200){
+                type: 'get',
+                url: BigNew.category_list,
+                success: function (backData) {
+                    if (backData.code == 200) {
                         $('.form-control').html(template('temp', backData));
                     }
                 }
+            })
+
+            // --------------------------------------------------
+            //1.获取点击编辑按钮 跟随url传递过来的文章id
+            let articleId = window.location.search.split('=')[1];
+            setTimeout(function () {
+                $.ajax({
+                    type:'get',
+                    url: BigNew.article_search,
+                    data: {
+                        id: articleId
+                    },
+                    success: function (backData) {
+                        if (backData.code == 200) {
+                            // 把对应的详细信息显示在对应的标签上. 
+                            $('#inputTitle').val(backData.data.title); //文章标题   
+                            $('.article_cover').attr('src', backData.data.cover); //文章预览图
+                            $('select.category').val(backData.data.categoryId); //文章类别
+                            $('#testico').val(backData.data.date); //文章发布时间
+                            editor.txt.html(backData.data.content); //文章内容
+                        }
+                    }
+                })
+            }, 0);
+
+            // 2.将状态修改为发布
+            $('.btn-edit').on('click',function(e){
+                // 阻止默认提交
+                e.preventDefault();
+                // 创建formData对象
+                let form = document.querySelector('form');
+                let fn = new FormData(form);
+                // 向fd对象中追加 文章id，文章修改后的内容，state值
+                fn.append('id',articleId);
+                fn.append('content', editor.txt.html());
+                fn.append('state','已发布');
+                $.ajax({
+                    type:'post',
+                    url:BigNew.article_edit,
+                    data:fn,
+                    contentType:false,
+                    processData:false,
+                    success:function(backData){
+                        if(backData.code == 200){
+                            //修改成功回到列表页
+                            window.history.back();
+                        }
+                    }
+                })
             })
         })
     </script>
